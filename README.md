@@ -1,3 +1,4 @@
+
 # When Stable Explanations Disagree: A Stability–Localization Disagreement Audit for Chest X-ray Classification
 
 ## Project Overview
@@ -8,9 +9,9 @@ This project investigates a specific question:
 
 **Can an explanation remain stable under image corruption while losing localization alignment with radiologist-annotated regions?**
 
-Using a pretrained ResNet-50 chest X-ray classifier and three XAI methods, this study evaluates explanation stability and localization jointly under controlled image corruptions.
+Using a ResNet-50 chest X-ray classifier initialized with pretrained weights and three XAI methods, this study evaluates explanation stability and localization jointly under controlled image corruptions.
 
-Rather than treating explanation stability as sufficient evidence of reliability, the project introduces a **stability–localization disagreement audit** to identify cases in which an explanation appears stable but its alignment with annotated lung-opacity regions deteriorates.
+Rather than treating explanation stability as sufficient evidence of reliability, the project introduces a **stability–localization disagreement audit** to identify cases in which an explanation remains quantitatively stable but its alignment with annotated lung-opacity regions deteriorates.
 
 ## Research Objectives
 
@@ -20,6 +21,7 @@ Rather than treating explanation stability as sufficient evidence of reliability
 4. Measure localization alignment using radiologist-provided bounding boxes.
 5. Identify and analyze cases where explanation stability remains high despite a meaningful reduction in localization alignment.
 6. Examine whether the classifier's predicted label changes in these disagreement cases.
+7. Compare explanation stability across XAI methods using paired bootstrap confidence intervals.
 
 ## Dataset
 
@@ -29,12 +31,18 @@ The dataset contains chest X-ray images in DICOM format, along with annotations 
 
 For this project, images were used to develop a binary classification task distinguishing cases with and without annotated lung opacity.
 
-### Dataset preparation
+### Dataset Preparation
 
 - Approximately 29,684 images were included in the modeling dataset.
 - Images were divided into training, validation, and test sets.
 - Stratified image-level splitting was used.
-- The final explainability audit used 300 held-out images: 150 annotated positive cases and 150 negative cases.
+- The final explainability evaluation used **300 held-out images: 150 ground-truth positive cases and 150 ground-truth negative cases**.
+
+The evaluation groups were defined using the **dataset annotations rather than the classifier's predictions**.
+
+Consequently, the positive group may contain both true positives (correctly classified positive images) and false negatives (positive images incorrectly classified as negative). Similarly, the negative group may contain true negatives and false positives.
+
+The primary stability–localization disagreement audit focuses on the **150 annotated positive images** because their radiologist-provided bounding boxes enable localization alignment measurement.
 
 The full DICOM dataset is not included in this repository because of its size and dataset distribution requirements.
 
@@ -56,7 +64,7 @@ The objective of this project is not to introduce a new classification architect
 
 ## Explainability Methods
 
-Three XAI methods were evaluated:
+Three XAI methods were evaluated.
 
 ### 1. Score-CAM
 
@@ -78,15 +86,27 @@ It identifies image regions that influence the prediction through perturbation-b
 
 These methods were selected to compare different explanation mechanisms rather than relying on a single attribution technique.
 
+### Explanation Target
+
+For each image, the classifier's **original predicted class** was selected as the explanation target. This target was held fixed when generating explanations for the original image and its corrupted versions.
+
+Holding the target fixed allows attribution maps to be compared for the same class, even when image corruption changes the classifier's predicted label.
+
+However, the explanation target is not necessarily the ground-truth class.
+
+For example, if a ground-truth positive image is incorrectly classified as negative, the XAI methods explain the model's negative-class prediction.
+
+This distinction affects the interpretation of localization alignment. In false-negative cases, low overlap with positive-opacity bounding boxes does not necessarily indicate that an explanation is unfaithful to the model's negative-class prediction.
+
 ## Experimental Design
 
 The final evaluation used:
 
-- **300 held-out chest X-rays**, including 150 positive and 150 negative cases.
+- **300 held-out chest X-rays:** 150 ground-truth positive and 150 ground-truth negative images.
 - **3 XAI methods:** Score-CAM, Integrated Gradients, and Occlusion Sensitivity.
-- **7 image conditions:** the original image and six corrupted versions.
+- **7 image conditions:** The original image and six corrupted versions.
 
-### Image corruptions
+### Image Corruptions
 
 | Corruption | Severity | Parameter |
 |---|---|---|
@@ -99,7 +119,7 @@ The final evaluation used:
 
 The expanded evaluation produced **6,300 method–image–condition records**.
 
-The primary disagreement audit focused on the 150 annotated positive cases across three explanation methods and six corrupted conditions, resulting in **2,700 evaluations**.
+The primary disagreement audit focused on the 150 annotated positive images across three explanation methods and six corrupted conditions, resulting in **2,700 evaluations**.
 
 These are repeated evaluations of images under different methods and conditions, not 2,700 independent patients.
 
@@ -130,9 +150,23 @@ The primary audit identified cases satisfying both conditions:
 
 These thresholds are exploratory operational definitions rather than clinically validated cutoffs.
 
+### Paired Bootstrap Comparison
+
+A supplementary analysis compared explanation stability between the three XAI methods.
+
+For each corruption type and severity, stability measurements were paired by image identifier so that methods were compared using the same chest X-rays.
+
+For each pair of methods, the analysis calculated image-level differences in explanation stability and performed **5,000 bootstrap resamples with replacement**.
+
+The resulting bootstrap distributions were used to estimate **95% percentile confidence intervals** for the mean stability differences.
+
+Confidence intervals excluding zero provide evidence of a difference in mean explanation stability for the corresponding method pair and corruption condition, subject to the assumptions and limitations of the sampling design.
+
+This analysis evaluates uncertainty in **between-method stability comparisons**. It is separate from the primary stability–localization disagreement audit and does not directly establish the statistical significance of the disagreement rate.
+
 ## Key Findings
 
-### 1. Stable explanations can lose localization alignment
+### 1. Stable Explanations Can Lose Localization Alignment
 
 Of the 2,700 positive-case method–image–corruption evaluations:
 
@@ -141,15 +175,21 @@ Of the 2,700 positive-case method–image–corruption evaluations:
 
 These findings show that high explanation stability does not necessarily imply preserved localization alignment.
 
-### 2. Most flagged cases retained the same predicted class
+### 2. Most Flagged Cases Retained the Same Predicted Class
 
 Of the 171 flagged evaluations:
 
-- **169 (98.83%)** retained the original predicted class.
+- **169 (98.83%)** retained the original predicted class after corruption.
 
-Thus, explanation localization can deteriorate even when the classifier's predicted label remains unchanged.
+Thus, stability–localization disagreement frequently occurred without a change in the classifier's predicted label.
 
-### 3. Disagreement varies across methods and corruption conditions
+**Prediction consistency is not equivalent to classification correctness.**
+
+An unchanged predicted class may be correct or incorrect relative to the ground-truth label.
+
+Therefore, the 98.83% result represents prediction consistency among flagged evaluations, not classification accuracy.
+
+### 3. Disagreement Varies Across Methods and Corruption Conditions
 
 The frequency of flagged cases differed across the three XAI methods and corruption settings.
 
@@ -157,19 +197,36 @@ One notable condition was Occlusion Sensitivity under mild Gaussian noise, with 
 
 More severe corruption does not necessarily produce more flagged disagreements, because the audit specifically requires explanations to remain highly stable.
 
-### 4. Qualitative case study
+### 4. Qualitative Case Study
 
 A selected Score-CAM case under severe Gaussian blur illustrated substantial localization loss despite high explanation stability and an unchanged predicted class.
 
-The case study provides a visual example of why stability and localization should be evaluated together.
+For this example:
+
+- Explanation stability: approximately 0.810.
+- Original localization alignment: approximately 0.488.
+- Corrupted localization alignment: approximately 0.161.
+- Alignment change: approximately −0.327.
+
+The case study provides an illustrative example of why stability and localization should be evaluated together.
+
+It should not be interpreted as evidence that Score-CAM is consistently the least reliable method.
+
+### 5. Threshold Sensitivity
+
+The disagreement audit was also evaluated using alternative stability and localization-loss thresholds.
+
+This analysis demonstrated that the percentage of flagged evaluations depends on the chosen operational thresholds.
+
+The threshold-sensitivity results help characterize the robustness of the audit's findings but do not establish clinically validated cutoff values.
 
 ## Main Contribution
 
-The project's primary contribution is a joint evaluation framework that examines **disagreement between explanation stability and localization alignment**.
+The project's primary contribution is an **empirical stability–localization disagreement audit** that jointly evaluates explanation stability and bounding-box localization alignment under controlled image corruptions.
 
-Instead of asking only whether an explanation changes after image corruption, the audit asks whether an explanation can appear stable while losing alignment with annotated regions.
+Instead of asking only whether an explanation changes after image corruption, the audit asks whether an explanation can remain stable while losing alignment with annotated regions.
 
-This framework provides an additional diagnostic perspective for evaluating XAI behavior in medical imaging.
+The study combines quantitative attribution comparisons, localization measurements, corruption experiments, and disagreement analysis to characterize a specific limitation of evaluating explanations through stability alone.
 
 The work is an exploratory empirical audit, not a new attribution algorithm or a clinically validated explanation-reliability metric.
 
@@ -201,13 +258,13 @@ The work is an exploratory empirical audit, not a new attribution algorithm or a
 
 The experiments were developed in **Google Colab** using Python.
 
-### 1. Obtain the dataset
+### 1. Obtain the Dataset
 
 Download the RSNA Pneumonia Detection Challenge dataset and its corresponding annotations from the official competition page.
 
 Follow the dataset provider's access and usage requirements.
 
-### 2. Install dependencies
+### 2. Install Dependencies
 
 The notebooks use packages from the Python scientific computing and deep learning ecosystem, including:
 
@@ -226,9 +283,9 @@ Install the project's dependencies using:
 pip install -r requirements.txt
 ```
 
-The exact package versions and complete dependency list must be documented in `requirements.txt`.
+The exact package versions and complete dependency list should be documented in `requirements.txt`.
 
-### 3. Configure file paths
+### 3. Configure File Paths
 
 The original experiments were run in Google Colab with files stored in Google Drive.
 
@@ -236,7 +293,7 @@ Users must update the notebook path configuration to point to their own dataset,
 
 The repository does not automatically reproduce the original Google Drive directory structure.
 
-### 4. Execute the notebooks
+### 4. Execute the Notebooks
 
 The intended workflow is:
 
@@ -249,9 +306,11 @@ The intended workflow is:
 
 The final comparison notebook requires the trained classifier checkpoint and supporting files generated or used in the earlier stages.
 
-### 5. Inspect saved results
+### 5. Inspect Saved Results
 
 The repository's `results/` directory is intended to contain selected summary CSVs and figures so the main findings can be examined without recomputing every attribution map.
+
+The paired bootstrap comparison results are saved as `xai_paired_bootstrap_results.csv`, with a corresponding visualization saved as `xai_paired_bootstrap_comparison.png` in the configured expanded-results directory.
 
 Full end-to-end reproduction may require substantial computation and access to the original data and trained model checkpoint.
 
@@ -263,22 +322,28 @@ This study has several important limitations:
 - **Single dataset:** The results may not generalize to other imaging datasets or clinical settings.
 - **Limited evaluation sample:** The expanded explainability evaluation includes 300 held-out images.
 - **Bounding-box annotations:** Radiologist boxes approximate annotated lung-opacity regions and do not establish complete ground-truth explanations.
+- **Classification correctness and explanation targets:** The primary audit includes ground-truth positive images regardless of whether the classifier predicts them correctly. For false-negative cases, the explanation targets the predicted negative class, making localization alignment with positive-opacity annotations harder to interpret. The current analysis does not separately report disagreement rates for true positives and false negatives.
 - **Artificial corruptions:** Gaussian blur and noise may not fully represent real-world acquisition artifacts or distribution shifts.
 - **Exploratory thresholds:** The disagreement thresholds were selected for analysis and are not clinically validated.
 - **Repeated measurements:** Method–image–corruption evaluations are not independent patient-level observations.
+- **Bootstrap uncertainty:** The paired bootstrap estimates uncertainty in mean stability differences for matched images. Its confidence intervals do not account for every potential source of uncertainty, such as model training variability or dataset shifts.
 - **Explanation faithfulness:** Stability and localization alignment do not, by themselves, establish whether an explanation faithfully represents the model's decision process.
 
-The findings should therefore be interpreted as evidence of a particular explanation-evaluation failure mode, not as clinical validation of the model or explanation methods.
+The findings should therefore be interpreted as evidence of a measurable disagreement between explanation-evaluation criteria, not as clinical validation of the model or explanation methods.
 
 ## Future Work
 
-Potential extensions include:
+This project will be extended in **Project Expo 2**, with a focus on strengthening the interpretation and evaluation of stability–localization disagreement.
 
-- Evaluating additional model architectures and medical imaging datasets.
-- Testing clinically realistic image corruptions and distribution shifts.
-- Investigating alternative localization and explanation-faithfulness metrics.
-- Studying the sensitivity of the disagreement criterion to threshold selection.
-- Evaluating explanation behavior across additional clinical subgroups and acquisition settings.
+Planned extensions include:
+
+- **Classification-stratified analysis:** Compare disagreement patterns between correctly classified positive images (true positives) and incorrectly classified positive images (false negatives).
+- **Explanation target interpretation:** Investigate how the relationship between predicted classes and ground-truth labels affects the interpretation of localization alignment.
+- **Alternative evaluation metrics:** Explore additional localization and explanation-faithfulness measures to complement bounding-box attribution overlap.
+- **Corruption robustness:** Investigate more clinically realistic image corruptions and distribution shifts.
+- **Threshold sensitivity:** Further examine how disagreement rates change under alternative stability and localization-loss thresholds.
+
+These extensions aim to better characterize when stability–localization disagreement occurs and how classification correctness influences its interpretation.
 
 ## References
 
