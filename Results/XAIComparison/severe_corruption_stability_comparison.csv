@@ -1,0 +1,5 @@
+corruption,pilot_group,Integrated Gradients,Occlusion Sensitivity,Score-CAM
+Blur,Negative,0.574,0.498,0.755
+Blur,Positive,0.592,0.854,0.861
+Noise,Negative,0.389,0.309,0.431
+Noise,Positive,0.305,0.66,0.135

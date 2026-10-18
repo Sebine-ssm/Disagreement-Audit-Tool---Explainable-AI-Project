@@ -1,0 +1,49 @@
+corruption,pilot_group,condition,mean_similarity,n_images,method
+Blur,Positive,Mild Blur,0.9961993071671192,6,Score-CAM
+Blur,Positive,Moderate Blur,0.9465527911341955,6,Score-CAM
+Blur,Positive,Original,1.0,6,Score-CAM
+Blur,Positive,Severe Blur,0.8606598796125625,6,Score-CAM
+Blur,Negative,Mild Blur,0.993823391865681,6,Score-CAM
+Blur,Negative,Moderate Blur,0.8535625868499667,6,Score-CAM
+Blur,Negative,Original,1.0,6,Score-CAM
+Blur,Negative,Severe Blur,0.7547228444157353,6,Score-CAM
+Noise,Positive,Mild Noise,0.8042016879693952,6,Score-CAM
+Noise,Positive,Moderate Noise,0.2859726018063577,6,Score-CAM
+Noise,Positive,Original,1.0,6,Score-CAM
+Noise,Positive,Severe Noise,0.1348485666466339,6,Score-CAM
+Noise,Negative,Mild Noise,0.937316664319353,6,Score-CAM
+Noise,Negative,Moderate Noise,0.740453990428394,6,Score-CAM
+Noise,Negative,Original,1.0,6,Score-CAM
+Noise,Negative,Severe Noise,0.4312924833115126,6,Score-CAM
+Blur,Negative,Mild Blur,0.8606161623193133,6,Integrated Gradients
+Blur,Negative,Moderate Blur,0.6628470045642872,6,Integrated Gradients
+Blur,Negative,Original,1.0,6,Integrated Gradients
+Blur,Negative,Severe Blur,0.5741459259567381,6,Integrated Gradients
+Blur,Positive,Mild Blur,0.8650196996596193,6,Integrated Gradients
+Blur,Positive,Moderate Blur,0.6552748624674146,6,Integrated Gradients
+Blur,Positive,Original,1.0,6,Integrated Gradients
+Blur,Positive,Severe Blur,0.5918308812966234,6,Integrated Gradients
+Noise,Negative,Mild Noise,0.6469862950814281,6,Integrated Gradients
+Noise,Negative,Moderate Noise,0.5204992206926268,6,Integrated Gradients
+Noise,Negative,Original,1.0,6,Integrated Gradients
+Noise,Negative,Severe Noise,0.3885246933098688,6,Integrated Gradients
+Noise,Positive,Mild Noise,0.6007434070905532,6,Integrated Gradients
+Noise,Positive,Moderate Noise,0.3991683966722379,6,Integrated Gradients
+Noise,Positive,Original,1.0,6,Integrated Gradients
+Noise,Positive,Severe Noise,0.305311816789354,6,Integrated Gradients
+Blur,Negative,Mild Blur,0.981310881702322,6,Occlusion Sensitivity
+Blur,Negative,Moderate Blur,0.7027697602854178,6,Occlusion Sensitivity
+Blur,Negative,Original,1.0,6,Occlusion Sensitivity
+Blur,Negative,Severe Blur,0.4978341919886804,6,Occlusion Sensitivity
+Blur,Positive,Mild Blur,0.9891922635659586,6,Occlusion Sensitivity
+Blur,Positive,Moderate Blur,0.9063916473885156,6,Occlusion Sensitivity
+Blur,Positive,Original,1.0,6,Occlusion Sensitivity
+Blur,Positive,Severe Blur,0.8535534912622594,6,Occlusion Sensitivity
+Noise,Negative,Mild Noise,0.7788317223599059,6,Occlusion Sensitivity
+Noise,Negative,Moderate Noise,0.570561106312672,6,Occlusion Sensitivity
+Noise,Negative,Original,1.0,6,Occlusion Sensitivity
+Noise,Negative,Severe Noise,0.3093472989610776,6,Occlusion Sensitivity
+Noise,Positive,Mild Noise,0.8683371925804075,6,Occlusion Sensitivity
+Noise,Positive,Moderate Noise,0.7107316727358479,6,Occlusion Sensitivity
+Noise,Positive,Original,1.0,6,Occlusion Sensitivity
+Noise,Positive,Severe Noise,0.6597099307433335,6,Occlusion Sensitivity

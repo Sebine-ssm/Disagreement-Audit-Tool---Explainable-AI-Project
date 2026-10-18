@@ -1,0 +1,19 @@
+method,corruption,severity,N,High_Stability,Localization_Loss,Disagreements,Disagreement_Rate_Pct
+Integrated Gradients,Blur,mild,150,148,1,1,0.6666666666666667
+Integrated Gradients,Blur,moderate,150,8,41,1,0.6666666666666667
+Integrated Gradients,Blur,severe,150,7,60,4,2.666666666666667
+Integrated Gradients,Noise,mild,150,7,63,4,2.666666666666667
+Integrated Gradients,Noise,moderate,150,2,123,2,1.3333333333333335
+Integrated Gradients,Noise,severe,150,0,137,0,0.0
+Occlusion Sensitivity,Blur,mild,150,150,0,0,0.0
+Occlusion Sensitivity,Blur,moderate,150,92,24,11,7.333333333333333
+Occlusion Sensitivity,Blur,severe,150,63,75,33,22.0
+Occlusion Sensitivity,Noise,mild,150,78,68,43,28.666666666666668
+Occlusion Sensitivity,Noise,moderate,150,13,112,11,7.333333333333333
+Occlusion Sensitivity,Noise,severe,150,4,118,4,2.666666666666667
+Score-CAM,Blur,mild,150,150,0,0,0.0
+Score-CAM,Blur,moderate,150,136,17,16,10.666666666666668
+Score-CAM,Blur,severe,150,93,50,27,18.0
+Score-CAM,Noise,mild,150,117,32,14,9.333333333333334
+Score-CAM,Noise,moderate,150,8,106,0,0.0
+Score-CAM,Noise,severe,150,0,118,0,0.0

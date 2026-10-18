@@ -1,0 +1,17 @@
+condition,mean_opacity_probability,mean_explanation_similarity,positive_predictions,images,corruption,image_group
+Mild Blur,0.9709783097108206,0.9961993071671191,6,6,Gaussian Blur,Positive
+Moderate Blur,0.913052091995875,0.9465527911341957,6,6,Gaussian Blur,Positive
+Original,0.9704544047514597,1.0,6,6,Gaussian Blur,Positive
+Severe Blur,0.8143823544184366,0.8606598796125625,6,6,Gaussian Blur,Positive
+Mild Blur,0.1089563891291618,0.993823391865681,0,6,Gaussian Blur,Negative
+Moderate Blur,0.3733341197172801,0.8535625868499667,1,6,Gaussian Blur,Negative
+Original,0.08516316224510467,1.0,0,6,Gaussian Blur,Negative
+Severe Blur,0.5768601894378662,0.7547228444157353,6,6,Gaussian Blur,Negative
+Mild Noise,0.7995501259962717,0.8042016879693952,6,6,Gaussian Noise,Positive
+Moderate Noise,0.6194087564945221,0.2859726018063577,6,6,Gaussian Noise,Positive
+Original,0.9704544047514597,0.9999999999999999,6,6,Gaussian Noise,Positive
+Severe Noise,0.6157111128171285,0.13484856664663392,6,6,Gaussian Noise,Positive
+Mild Noise,0.24367471411824224,0.937316664319353,0,6,Gaussian Noise,Negative
+Moderate Noise,0.4101532846689224,0.740453990428394,0,6,Gaussian Noise,Negative
+Original,0.08516316224510467,1.0,0,6,Gaussian Noise,Negative
+Severe Noise,0.5553857932488123,0.43129248331151265,5,6,Gaussian Noise,Negative

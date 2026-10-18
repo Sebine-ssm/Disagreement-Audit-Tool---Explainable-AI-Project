@@ -1,0 +1,4 @@
+method,flagged_evaluations,predictions_unchanged,predictions_changed,percent_unchanged
+Integrated Gradients,12,12,0,100.0
+Occlusion Sensitivity,102,102,0,100.0
+Score-CAM,57,55,2,96.49122807017544
