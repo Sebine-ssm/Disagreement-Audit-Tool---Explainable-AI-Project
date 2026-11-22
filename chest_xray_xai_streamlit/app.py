@@ -780,6 +780,12 @@ with tab_statistics:
         "20 images only; it does not provide an inferential interval for "
         "other top-N selections."
     )
+    st.caption(
+        "Notebook 11: 2,000 independent condition-stratified permutations "
+        "(seed 42); exploratory one-sided Monte Carlo p ≈ 0.0005. "
+        "Each permutation preserves the disagreement count within each "
+        "method × corruption × severity condition, but not image-level recurrence."
+    )
 
 
     st.divider()
@@ -803,11 +809,22 @@ with tab_statistics:
         "condition-specific heatmap cells."
     )
     st.caption(
-        "The original notebook reported approximately 0.508; the interactive "
-        "explorer currently displays 0.507. Verify the exact calculation "
-        "and rounding convention in the source notebook before publication. "
-        "This association is descriptive and does not prove that stability "
-        "guarantees localization or explanation faithfulness."
+        "The original pooled coefficient is approximately 0.5075, reported "
+        "as 0.508 to three decimal places. Small differences in displayed "
+        "rounding do not change the interpretation. These associations are "
+        "descriptive, not evidence of causal explanation faithfulness."
+    )
+    st.subheader("Method-specific bootstrap results")
+    st.dataframe(pd.DataFrame({
+        "XAI method": ["Integrated Gradients", "Occlusion Sensitivity", "Score-CAM"],
+        "Spearman ρ": [0.504, 0.336, 0.621],
+        "95% image-cluster bootstrap CI": ["[0.432, 0.578]", "[0.239, 0.432]", "[0.568, 0.670]"],
+        "Evaluations": [900, 900, 900],
+    }), hide_index=True, use_container_width=True)
+    st.caption(
+        "Fixed method-specific full-sample results from Notebook 09; "
+        "not recalculated for interactive filters. The original analysis "
+        "used 2,000 image-cluster bootstrap draws with random seed 42."
     )
 
 
@@ -895,14 +912,26 @@ with tab_findings:
         the **original full sample** and must not be applied to the filtered
         charts or to individual methods or conditions.
 
-        **Condition-stratified permutation test:** The original study compared
-        the share of disagreement events in the **top 20 images** with a null
-        distribution generated under its condition-stratified permutation
-        procedure. Observed concentration was **50.88%**, versus a null mean
+        **Condition-stratified permutation test (Notebook 11):** The analysis
+        arranged disagreement indicators into a **150-image × 18-condition**
+        matrix. In each of **2,000 permutations** (random seed **42**), the
+        indicators were independently shuffled **across images within each
+        method × corruption × severity condition**. This preserves the
+        number of disagreement events per condition but disrupts their
+        association with image identity. Each permutation recalculates the
+        share of all disagreement events in the **20 most affected images**.
+
+        The observed top-20 share was **50.88%**, compared with a null mean
         of **32.84%** and a central **95% null interval of 29.24%–36.84%**.
+        The exploratory one-sided Monte Carlo p-value was **≈ 0.0005**,
+        calculated with the plus-one correction. The observed number of
+        affected images was **70**, versus a null mean of **107.1** and
+        central 95% interval of **100–114**.
+
         The null interval is **not a confidence interval** for the observed
-        concentration. The fixed test does not update when filters or the
-        exploratory top-N slider change.
+        concentration. The permutation benchmark intentionally does not
+        preserve within-image correlations; it is not a causal test. These
+        fixed results do not update with dashboard filters or the top-N slider.
         """)
     with st.expander("5 · Scope, assumptions, and reproducibility"):
         st.markdown("""
@@ -918,7 +947,9 @@ with tab_findings:
         are displayed as **fixed results** from the research notebook, rather
         than rerun within Streamlit. Consult the source notebooks for the
         exact alignment scoring algorithm, corruption parameterization,
-        bootstrap settings, and permutation implementation.
+        bootstrap settings, and permutation implementation. The permutation
+        analysis uses **2,000 condition-stratified shuffles** and should not
+        be interpreted as evidence of clinical risk.
         """)
     st.divider()
 
