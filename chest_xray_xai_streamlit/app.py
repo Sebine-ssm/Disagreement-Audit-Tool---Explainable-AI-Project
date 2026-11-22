@@ -253,6 +253,8 @@ else:
 
     st.plotly_chart(fig, use_container_width=True, key="stability_localization_scatter")
 
+render_continuous_analysis(df, filtered_df)
+
 # -------------------------------------------
 # XAI Method Comparison
 # -------------------------------------------
