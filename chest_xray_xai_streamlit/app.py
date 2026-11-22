@@ -19,7 +19,7 @@ with st.sidebar:
 
     st.markdown("""
     - [Experimental Results](#experimental-results)
-    - [Stability–Localization Explorer](#stabilitylocalization-explorer)
+    - [Stability–Localization Explorer](#stability-localization-explorer)
     - [XAI Method Comparison](#xai-method-comparison)
     - [Screening Performance](#screening-performance-explorer)
     - [Image-Level Analysis](#image-level-disagreement-analysis)
