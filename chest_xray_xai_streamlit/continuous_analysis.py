@@ -22,7 +22,7 @@ def render_continuous_analysis(df: pd.DataFrame, filtered_df: pd.DataFrame) -> N
         'localization alignment without first converting either measure into a binary label. '
         'These analyses are descriptive; repeated evaluations of the same image are not independent.'
     )
-    st.caption('Method, corruption, and severity selections are inherited from the Stability–Localization Explorer above.')
+    st.caption('Method, corruption, and severity selections come from the global filters above the four tabs.')
     if filtered_df.empty:
         st.warning('Select at least one method, corruption type, and severity above.')
         return
@@ -38,6 +38,17 @@ def render_continuous_analysis(df: pd.DataFrame, filtered_df: pd.DataFrame) -> N
     b.metric('Spearman ρ', f'{rho:.3f}' if pd.notna(rho) else 'N/A')
     c.metric('High-similarity evaluations', f'{int(high.sum()):,}')
     e.metric('High-similarity losses', f'{int(exceptions.sum()):,} ({exceptions.sum()/high.sum():.1%})' if high.sum() else '0 (N/A)')
+
+    if pd.notna(rho):
+        st.markdown(
+            f"**Reading the pooled association:** Spearman ρ = **{rho:.3f}** "
+            f"across **{len(subset):,} evaluations** from "
+            f"**{subset['sop_uid'].nunique():,} unique images**. "
+            "This is a descriptive rank association, not evidence that every "
+            "stable explanation preserves localization."
+        )
+    else:
+        st.caption('The current selection does not have enough variation for a pooled correlation.')
 
     st.subheader('Explore individual evaluations')
     subset['Result'] = 'Other evaluation'
@@ -55,7 +66,11 @@ def render_continuous_analysis(df: pd.DataFrame, filtered_df: pd.DataFrame) -> N
     fig.add_hline(y=0, line_dash='dot', line_color='gray')
     fig.update_layout(height=550)
     st.plotly_chart(fig, use_container_width=True, key='continuous_scatter')
-    st.caption('The bottom-right region identifies observations with high explanation similarity and substantial localization deterioration.')
+    st.caption(
+        f"The bottom-right region contains {int(exceptions.sum()):,} evaluations "
+        f"with similarity ≥ {high_cutoff:.2f} and alignment change ≤ −{loss_cutoff:.2f}. "
+        "The cutoffs identify exceptions but do not affect the correlation coefficient."
+    )
 
     st.subheader('Correlation by XAI method')
     method_rows = []
@@ -69,6 +84,10 @@ def render_continuous_analysis(df: pd.DataFrame, filtered_df: pd.DataFrame) -> N
         fig_method.update_layout(showlegend=False, height=390)
         st.plotly_chart(fig_method, use_container_width=True, key='continuous_method_correlation')
     st.dataframe(methods.round(3), hide_index=True, use_container_width=True)
+    st.caption(
+        'These method-level correlations pool corruption conditions within each method. '
+        'They are descriptive comparisons, not statistical tests or rankings of explanation quality.'
+    )
 
     st.subheader('Correlation by corruption and severity')
     group_rows = []
@@ -84,6 +103,19 @@ def render_continuous_analysis(df: pd.DataFrame, filtered_df: pd.DataFrame) -> N
         st.plotly_chart(fig_heat, use_container_width=True, key='continuous_condition_heatmap')
     else:
         st.info('Not enough variation in the selected subsets to calculate correlations.')
+    valid_strata = strata.dropna(subset=['Spearman ρ'])
+    if not valid_strata.empty and pd.notna(rho):
+        st.markdown(
+            f"**Why stratification matters:** The pooled correlation is **{rho:.3f}**, "
+            f"while the {len(valid_strata)} calculable method–condition correlations "
+            f"range from **{valid_strata['Spearman ρ'].min():.3f}** to "
+            f"**{valid_strata['Spearman ρ'].max():.3f}**. "
+            "The pooled coefficient is not an average of the condition-specific coefficients."
+        )
+        st.caption(
+            'Differences between experimental conditions can contribute to the pooled association. '
+            'This descriptive comparison does not establish a causal mechanism or formally test Simpson’s paradox.'
+        )
     with st.expander('View condition-level correlation table'):
         st.dataframe(strata.round(3), hide_index=True, use_container_width=True)
 
@@ -105,7 +137,12 @@ def render_continuous_analysis(df: pd.DataFrame, filtered_df: pd.DataFrame) -> N
         fig_exc.update_layout(showlegend=False, height=400)
         st.plotly_chart(fig_exc, use_container_width=True, key='continuous_exception_rates')
     st.dataframe(exception_table.round(2), hide_index=True, use_container_width=True)
-    st.caption('Loss rates use only high-similarity evaluations as the denominator; they are not the overall disagreement rates shown elsewhere in the app.')
+    st.caption(
+        f"Among {int(high.sum()):,} high-similarity evaluations, "
+        f"{int(exceptions.sum()):,} show localization loss ≥ {loss_cutoff:.2f}. "
+        'Each method’s loss rate uses only its high-similarity evaluations as the denominator; '
+        'these are not overall disagreement rates.'
+    )
 
     st.info('Statistical interpretation: correlations in this explorer are recalculated for the current filters, but no confidence interval or p-value is claimed for those filtered subsets. Image-cluster bootstrap inference from the original notebook must be presented separately as a fixed full-sample result.')
     with st.expander('Download currently filtered continuous-analysis data'):
