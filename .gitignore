@@ -218,3 +218,26 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# macOS files
+.DS_Store
+
+# Virtual environments
+.xai_project/
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+.env.*
+.streamlit/secrets.toml
+
+# Original research dataset
+chest_xray_xai_streamlit/data/stability_localization_area_enriched.csv
+
+# Local dataset preparation script
+chest_xray_xai_streamlit/data/prepare_public_data.py
