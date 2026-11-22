@@ -85,21 +85,37 @@ st.caption(
 )
 
 with st.expander("Study design and metric definitions", expanded=False):
-    st.markdown(
-        "**Study design:** Opacity-positive chest X-rays from the RSNA "
-        "Pneumonia Detection Challenge were evaluated using three XAI methods "
-        "across six image-corruption conditions. Each record represents an "
-        "image–method–corruption evaluation.\n\n"
-        "**Explanation similarity:** Spearman correlation between the original "
-        "and corrupted explanation maps.\n\n"
-        "**Localization alignment:** Spatial alignment of an explanation with "
-        "the annotated opacity region. **Alignment change** is corrupted "
-        "alignment minus original alignment; negative values indicate loss.\n\n"
-        "**Disagreement event:** Similarity at or above the selected threshold "
-        "despite alignment loss at or above the selected loss threshold. "
-        "These metrics describe different properties and do not by themselves "
-        "establish explanation faithfulness."
-    )
+    st.markdown("""
+    **Research question.** Can an explanation remain similar following image corruption
+    while becoming less spatially aligned with the annotated opacity region?
+
+    **Study sample and unit of analysis.** The analysis uses 150 opacity-positive
+    RSNA Pneumonia Detection Challenge chest X-rays. Three explanation methods
+    (Integrated Gradients, Occlusion Sensitivity, and Score-CAM) were evaluated
+    under six corruption conditions: Gaussian blur and noise, each at mild,
+    moderate, and severe levels. This gives 150 × 3 × 6 = **2,700 evaluation
+    records**. A record is an image–method–corruption-condition evaluation,
+    **not** an independent image or patient.
+
+    **Explanation similarity.** Spearman rank correlation compares the original
+    explanation map with the map generated after corruption. Higher values
+    indicate greater similarity in the maps' spatial rankings.
+
+    **Localization alignment.** The recorded alignment score measures spatial
+    agreement with the radiologist-annotated opacity region. The specific
+    alignment scoring procedure is defined by the underlying analysis pipeline;
+    it should not be interpreted as a measure of causal faithfulness.
+
+    **Alignment change** = corrupted alignment − original alignment. A negative
+    value indicates deterioration relative to the original explanation.
+
+    **Baseline disagreement event.** Explanation similarity ≥ **0.80** and
+    alignment change ≤ **−0.05**. The global sliders allow exploratory changes
+    to these thresholds; the original fixed research results do not change.
+
+    **Prediction target.** Explanations use the original predicted class as the
+    fixed target under corruption, as specified in the original analysis.
+    """)
 
 st.divider()
 st.markdown("### Explore the results")
@@ -766,6 +782,35 @@ with tab_statistics:
     )
 
 
+    st.divider()
+    st.header("Original Research: Stability–Localization Association")
+    st.caption(
+        "Fixed full-sample analysis from the original research notebook. "
+        "These estimates are not recomputed when dashboard filters or thresholds change."
+    )
+    b1, b2, b3 = st.columns(3)
+    b1.metric("Full-sample Spearman ρ", "≈ 0.508")
+    b2.metric("Image-cluster bootstrap 95% CI", "[0.453, 0.559]")
+    b3.metric("Unique image clusters", "150")
+    st.markdown(
+        "**Interpretation:** Across all 2,700 evaluations, the pooled rank "
+        "association between explanation similarity and alignment change was "
+        "positive. The original notebook estimated uncertainty by resampling "
+        "**images as clusters**, keeping repeated method–condition evaluations "
+        "together rather than treating 2,700 records as independent. "
+        "The interval is for the **fixed full-sample pooled association only**; "
+        "it does not apply to filtered subsets, individual XAI methods, or "
+        "condition-specific heatmap cells."
+    )
+    st.caption(
+        "The original notebook reported approximately 0.508; the interactive "
+        "explorer currently displays 0.507. Verify the exact calculation "
+        "and rounding convention in the source notebook before publication. "
+        "This association is descriptive and does not prove that stability "
+        "guarantees localization or explanation faithfulness."
+    )
+
+
 
 with tab_findings:
     # -------------------------------------------
@@ -781,6 +826,101 @@ with tab_findings:
         "localization loss ≥ 0.05. They do not change "
         "when dashboard filters are adjusted."
     )
+
+    st.subheader("Methodology and interpretation guide")
+    st.markdown(
+        "This section documents how to interpret the interactive analyses and "
+        "the fixed results from the original research notebook."
+    )
+    with st.expander("1 · Experimental design and evaluation structure", expanded=True):
+        st.markdown("""
+        The study evaluates **150 opacity-positive chest X-rays** from the RSNA
+        Pneumonia Detection Challenge using a **ResNet-50** classifier.
+        For each image, the study compares original and corrupted explanations
+        from **Integrated Gradients**, **Occlusion Sensitivity**, and **Score-CAM**.
+        The six conditions are **blur** and **noise**, each at **mild**,
+        **moderate**, and **severe** levels. There are **18 evaluations per image**
+        and **2,700 evaluations** overall.
+
+        These are repeated observations of the same images. A method-level or
+        condition-level evaluation count must not be interpreted as the number
+        of independent patients. The analysis holds the original predicted
+        class fixed as the explanation target under corruption.
+        """)
+    with st.expander("2 · What the evaluation metrics mean"):
+        st.markdown("""
+        - **Explanation similarity:** Spearman rank correlation between original
+          and corrupted explanation maps. Higher values indicate similar
+          spatial rankings, not necessarily similar clinical relevance.
+        - **Localization alignment:** Agreement between an attribution map and
+          the annotated opacity region. This measures spatial correspondence,
+          not whether the model causally relies on the highlighted pixels.
+        - **Alignment change:** Corrupted alignment minus original alignment.
+          A value of **−0.08** means the recorded alignment score fell by
+          **0.08 units**; it should not automatically be called an 8% reduction.
+        - **Disagreement:** A high-similarity explanation with substantial
+          localization deterioration. The original criteria are similarity
+          **≥ 0.80** and alignment change **≤ −0.05**.
+
+        The dashboard uses the alignment scores provided by the study dataset;
+        this display does not independently verify the underlying alignment
+        scoring implementation.
+        """)
+    with st.expander("3 · Descriptive analyses and screening rule"):
+        st.markdown("""
+        The disagreement explorer and method comparison recalculate counts and
+        rates from the **currently selected methods, corruptions, severities,
+        and global thresholds**. The continuous-analysis tab instead examines
+        the numerical association between explanation similarity and alignment
+        change; its Spearman correlations **do not depend on the binary
+        disagreement thresholds**.
+
+        The screening explorer flags **low-similarity** evaluations as potential
+        localization losses. A **missed loss** is an evaluation with substantial
+        alignment deterioration that nevertheless remains above the similarity
+        threshold. Screening sensitivity and precision are descriptive for
+        this study sample, not clinical performance estimates.
+
+        Method-pooled and condition-specific correlations can differ because
+        combining conditions changes the distribution of both variables.
+        Their differences alone do not establish a causal explanation or a
+        formal test of Simpson's paradox.
+        """)
+    with st.expander("4 · Fixed statistical analyses"):
+        st.markdown("""
+        **Image-cluster bootstrap:** The original full-sample analysis reported
+        pooled Spearman **ρ ≈ 0.508** with an image-cluster bootstrap **95%
+        confidence interval of [0.453, 0.559]**. Images, rather than individual
+        evaluation rows, are the resampling units. This interval belongs to
+        the **original full sample** and must not be applied to the filtered
+        charts or to individual methods or conditions.
+
+        **Condition-stratified permutation test:** The original study compared
+        the share of disagreement events in the **top 20 images** with a null
+        distribution generated under its condition-stratified permutation
+        procedure. Observed concentration was **50.88%**, versus a null mean
+        of **32.84%** and a central **95% null interval of 29.24%–36.84%**.
+        The null interval is **not a confidence interval** for the observed
+        concentration. The fixed test does not update when filters or the
+        exploratory top-N slider change.
+        """)
+    with st.expander("5 · Scope, assumptions, and reproducibility"):
+        st.markdown("""
+        This is a single-model, opacity-positive, 150-image research evaluation.
+        The chosen corruptions, severity settings, XAI methods, annotated
+        regions, and threshold values influence the findings. Localization
+        alignment is a proxy for spatial agreement, not an independent
+        validation of model reasoning. No clinical generalization or diagnostic
+        safety claim follows from these results.
+
+        **Reproducibility note:** Interactive results are calculated from the
+        packaged public CSV. The original bootstrap and permutation summaries
+        are displayed as **fixed results** from the research notebook, rather
+        than rerun within Streamlit. Consult the source notebooks for the
+        exact alignment scoring algorithm, corruption parameterization,
+        bootstrap settings, and permutation implementation.
+        """)
+    st.divider()
 
     st.subheader("Key Research Findings")
 
@@ -891,7 +1031,7 @@ with tab_findings:
 
         However, localization alignment decreased from
         approximately **0.121 to 0.038**, a loss of about
-        **0.083 (8.3 percentage points)**.
+        **0.083 alignment-score units**.
 
         This example therefore meets the original disagreement
         criteria:
