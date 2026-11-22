@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Explainable Artificial Intelligence (XAI) methods are increasingly used to interpret predictions made by deep learning models, particularly in high-stakes domains such as medical imaging. However, an explanation that remains visually or quantitatively stable under image perturbations may not necessarily remain aligned with clinically relevant regions.
+Explainable Artificial Intelligence (XAI) methods are increasingly used to interpret predictions made by deep learning models, particularly in high-stakes domains such as medical imaging. However, an explanation that remains visually or quantitatively stable under image perturbations may not necessarily remain aligned with clinically relevant regions. Across 2,700 positive-case evaluations, 171 (6.33%) met the stability–localization disagreement criterion. Explanation similarity achieved an overall screening AUROC of 0.7911 for substantial localization loss, while the 20 most affected images accounted for 50.88% of disagreement events.
 
 This project investigates a specific question:
 
@@ -166,6 +166,26 @@ Confidence intervals excluding zero provide evidence of a difference in mean exp
 
 This analysis evaluates uncertainty in **between-method stability comparisons**. It is separate from the primary stability–localization disagreement audit and does not directly establish the statistical significance of the disagreement rate.
 
+### Similarity-Based Screening
+
+A supplementary analysis evaluated whether explanation similarity could serve as a screening signal for substantial localization loss.
+
+Substantial localization loss was defined as an alignment decrease of at least 0.05. Screening performance was assessed using receiver operating characteristic (ROC) analysis and area under the ROC curve (AUROC), treating lower explanation similarity as indicating greater risk of localization loss.
+
+This analysis evaluates the discriminatory ability of explanation similarity for the specified outcome. It does not establish a clinically validated screening threshold.
+
+### Image-Level Disagreement Concentration
+
+The analysis also examined whether disagreement events were distributed evenly across the 150 annotated positive images or concentrated among a smaller subset.
+
+For each image, disagreement events were counted across the three XAI methods and six corruption conditions.
+
+A condition-stratified permutation analysis independently reassigned disagreement flags across images within each method–corruption–severity condition while preserving the number of flagged evaluations in each condition.
+
+Using 2,000 permutations, the observed concentration of disagreement events among the 20 most affected images was compared with the resulting permutation distribution.
+
+This benchmark evaluates concentration relative to the specified reassignment procedure. It does not establish the causes of repeated disagreement or preserve all forms of within-image dependence.
+
 ## Key Findings
 
 ### 1. Stable Explanations Can Lose Localization Alignment
@@ -302,8 +322,6 @@ The work is an exploratory empirical audit, not a new attribution algorithm or a
 └── requirements.txt
 ```
 
-*The structure above is the intended repository layout. Filenames and paths should be updated to match the files actually uploaded.*
-
 ## Reproducibility and Setup
 
 The experiments were developed in **Google Colab** using Python.
@@ -314,26 +332,29 @@ Download the RSNA Pneumonia Detection Challenge dataset and its corresponding an
 
 Follow the dataset provider's access and usage requirements.
 
-### 2. Install Dependencies
+### Install Dependencies
 
-The notebooks use packages from the Python scientific computing and deep learning ecosystem, including:
+The repository maintains separate dependency files for the research notebooks and the interactive Streamlit dashboard.
 
-- PyTorch and torchvision
-- NumPy
-- pandas
-- SciPy
-- scikit-learn
-- Matplotlib
-- pydicom
-- Captum
+**Research environment**
 
-Install the project's dependencies using:
+From the repository root:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-The exact package versions and complete dependency list should be documented in `requirements.txt`.
+**Streamlit dashboard environment**
+
+From the repository root:
+
+```bash
+python -m pip install -r chest_xray_xai_streamlit/requirements.txt
+```
+
+The research notebooks were primarily developed in Google Colab and may require additional environment-specific configuration, dataset access, and model checkpoints.
+
+The Streamlit application uses its own dependency file to support dashboard deployment independently of the full research environment.
 
 ### 3. Configure File Paths
 
@@ -345,24 +366,59 @@ The repository does not automatically reproduce the original Google Drive direct
 
 ### 4. Execute the Notebooks
 
-The intended workflow is:
+The research workflow consists of 11 notebooks organized into data preparation, model training, explanation generation, statistical analysis, and research synthesis.
 
-1. `01_Data_Preprocessing.ipynb` — Dataset preparation and preprocessing.
-2. `02_Model_Training.ipynb` — ResNet-50 training and evaluation.
-3. `03_ScoreCAM.ipynb` — Score-CAM pilot analysis.
+1. `01_RSNA_Data_Preparation.ipynb` — Dataset preparation, preprocessing, and train/validation/test splitting.
+2. `02_ResNet50_Training.ipynb` — ResNet-50 training and classification evaluation.
+3. `03_Score-CAM.ipynb` — Score-CAM pilot analysis.
 4. `04_Integrated_Gradients.ipynb` — Integrated Gradients pilot analysis.
 5. `05_Occlusion_Sensitivity.ipynb` — Occlusion Sensitivity pilot analysis.
-6. `06_XAI_Comparison.ipynb` — Expanded evaluation, statistical comparisons, disagreement audit, sensitivity analysis, and qualitative case study.
+6. `06_XAI_Comparison.ipynb` — Expanded XAI evaluation, paired comparisons, and primary disagreement audit.
+7. `07_Disagreement_Validation_Notebook.ipynb` — Validation of disagreement flags and supporting calculations.
+8. `08_Localization_Analysis_and_Attribution_Visualization.ipynb` — Localization analysis, attribution visualization, and qualitative examples.
+9. `09_Continuous_Stability_Localization_Analysis.ipynb` — Continuous stability–localization relationships and stratified analysis.
+10. `10_Stability_Screening_and_Localization_Sensitivity.ipynb` — Screening reliability and localization-loss sensitivity.
+11. `11_Image_Level_Failure_Concentration_and_Reaesrch_Synthesis.ipynb` — Image-level disagreement concentration, permutation analysis, and research synthesis.
 
-The final comparison notebook requires the trained classifier checkpoint and supporting files generated or used in the earlier stages.
+The notebooks are organized in the order of the research workflow. However, complete execution requires the appropriate input files, saved intermediate artifacts, model checkpoint, and configured paths. Some later notebooks reuse outputs generated during earlier experiments.
+
+Full end-to-end reproduction may require substantial computational resources, particularly for generating attribution maps.
 
 ### 5. Inspect Saved Results
 
-The repository's `results/` directory is intended to contain selected summary CSVs and figures so the main findings can be examined without recomputing every attribution map.
+The repository's Results/ directory contains saved research outputs from the experiments. Selected summary files and visualizations can be inspected without recomputing every attribution map, where those artifacts are available.
 
 The paired bootstrap comparison results are saved as `xai_paired_bootstrap_results.csv`, with a corresponding visualization saved as `xai_paired_bootstrap_comparison.png` in the configured expanded-results directory.
 
 Full end-to-end reproduction may require substantial computation and access to the original data and trained model checkpoint.
+
+## Interactive Streamlit Dashboard
+
+**Link**: https://disagreement-audit-tool---explainable-ai-project-eqrkskucbczxc.streamlit.app/
+
+In addition to the research notebooks, this repository includes a Streamlit application for exploring the stability–localization disagreement audit.
+
+The application is implemented in `chest_xray_xai_streamlit/app.py`, with additional analysis functionality in `continuous_analysis.py`.
+
+The dashboard provides an interactive interface for examining the project's explainability results and supporting analyses.
+
+### Running the Dashboard Locally
+
+From the repository root, install the dashboard dependencies:
+
+```bash
+python -m pip install -r chest_xray_xai_streamlit/requirements.txt
+```
+
+Launch the application:
+
+```bash
+streamlit run chest_xray_xai_streamlit/app.py
+```
+
+The application relies on supporting files within the `chest_xray_xai_streamlit/` directory. These files should retain their expected locations when running the dashboard.
+
+The dashboard is a research visualization tool, not a clinically validated diagnostic system.
 
 ## Limitations
 
@@ -378,6 +434,8 @@ This study has several important limitations:
 - **Repeated measurements:** Method–image–corruption evaluations are not independent patient-level observations.
 - **Bootstrap uncertainty:** The paired bootstrap estimates uncertainty in mean stability differences for matched images. Its confidence intervals do not account for every potential source of uncertainty, such as model training variability or dataset shifts.
 - **Explanation faithfulness:** Stability and localization alignment do not, by themselves, establish whether an explanation faithfully represents the model's decision process.
+- **Screening reliability:** The screening AUROC evaluates how well explanation similarity discriminates substantial localization loss under the chosen definition. It does not establish a calibrated or clinically validated reliability measure.
+- **Permutation benchmark:** The image-level concentration analysis preserves disagreement totals within method–corruption–severity conditions but does not preserve all within-image dependence. Its results should be interpreted relative to the specified exploratory null model.
 
 The findings should therefore be interpreted as evidence of a measurable disagreement between explanation-evaluation criteria, not as clinical validation of the model or explanation methods.
 
