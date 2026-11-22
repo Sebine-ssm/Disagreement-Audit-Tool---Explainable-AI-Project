@@ -12,6 +12,8 @@ Using a ResNet-50 chest X-ray classifier initialized with pretrained weights and
 
 Rather than treating explanation stability as sufficient evidence of reliability, the project introduces a **stability–localization disagreement audit** to identify cases in which an explanation remains quantitatively stable but its alignment with annotated lung-opacity regions deteriorates.
 
+This project extends an initial stability–localization disagreement audit by investigating continuous relationships between explanation stability and localization change, evaluating similarity-based screening for localization deterioration, and examining the concentration of disagreement events across images.
+
 ## Research Objectives
 
 1. Generate explanations using three XAI methods for chest X-ray classification.
