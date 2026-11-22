@@ -2,6 +2,7 @@ import streamlit as st
 from pathlib import Path
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from continuous_analysis import render_continuous_analysis
 
 st.set_page_config(
@@ -580,46 +581,97 @@ with tab_statistics:
         col2.metric("Events in Top Images", f"{top_events:,}")
         col3.metric("Share of Events", f"{concentration:.2f}%")
 
-        concentration_df = pd.DataFrame(
-            {
-                "Group": [
-                    f"Top {top_n} Images",
-                    "Remaining Images",
-                ],
-                "Events": [
-                    top_events,
-                    total_events - top_events,
-                ],
-            }
+        # Cumulative concentration curve: image counts are ranked from highest
+        # to lowest, with all images (including zero-event images) retained.
+        ranked_counts = image_counts.to_numpy()
+        cumulative_events = pd.Series(ranked_counts).cumsum().to_numpy()
+        image_ranks = list(range(1, max_top_n + 1))
+        cumulative_share = (
+            100 * cumulative_events / total_events
+            if total_events > 0
+            else cumulative_events.astype(float)
         )
+        equal_share = [100 * rank / max_top_n for rank in image_ranks]
 
-        fig_concentration = px.bar(
-            concentration_df,
-            x="Group",
-            y="Events",
-            color="Group",
-            text="Events",
-            title="Concentration of Disagreement Events",
+        fig_concentration = go.Figure()
+        fig_concentration.add_trace(
+            go.Scatter(
+                x=image_ranks,
+                y=equal_share,
+                mode="lines",
+                name="Equal-share reference",
+                line=dict(color="#9299A2", dash="dash", width=2),
+                hovertemplate="Top %{x} images<br>Equal-share reference: %{y:.1f}%<extra></extra>",
+            )
         )
-
-        fig_concentration.update_traces(textposition="outside")
-
+        fig_concentration.add_trace(
+            go.Scatter(
+                x=image_ranks,
+                y=cumulative_share,
+                mode="lines",
+                name="Observed cumulative share",
+                line=dict(color="#1769C2", width=3),
+                fill="tonexty" if total_events > 0 else None,
+                fillcolor="rgba(23,105,194,0.09)",
+                customdata=cumulative_events,
+                hovertemplate=(
+                    "Top %{x} images<br>"
+                    "Cumulative share: %{y:.2f}%<br>"
+                    "Events: %{customdata:,}<extra></extra>"
+                ),
+            )
+        )
+        fig_concentration.add_trace(
+            go.Scatter(
+                x=[top_n],
+                y=[concentration],
+                mode="markers+text",
+                name="Selected top-N",
+                marker=dict(size=13, color="#D24A43", line=dict(color="white", width=2)),
+                text=[f"{concentration:.2f}%"],
+                textposition="top center",
+                hovertemplate=(
+                    f"Top {top_n} images<br>"
+                    f"{top_events:,} of {total_events:,} events<br>"
+                    f"{concentration:.2f}% of all events<extra></extra>"
+                ),
+            )
+        )
         fig_concentration.update_layout(
-            height=420,
-            showlegend=False,
-            yaxis_title="Number of Disagreement Events",
+            title="Cumulative concentration of disagreement events",
+            xaxis_title="Number of highest-disagreement images included",
+            yaxis_title="Cumulative share of disagreement events (%)",
+            xaxis=dict(range=[0, max_top_n + 1]),
+            yaxis=dict(range=[0, 106], ticksuffix="%"),
+            hovermode="closest",
+            height=480,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+            margin=dict(t=100),
         )
-
         st.plotly_chart(
             fig_concentration,
             use_container_width=True,
-            key="disagreement_concentration_chart",
+            key="disagreement_concentration_curve",
         )
-
+        if total_events == 0:
+            st.info(
+                "No disagreement events meet the selected filters and thresholds. "
+                "The curve is flat at 0%; adjust the filters to explore concentration."
+            )
+        else:
+            st.markdown(
+                f"**Interpretation:** The top **{top_n} of {max_top_n} images** "
+                f"({top_n / max_top_n:.1%} of selected images) account for "
+                f"**{top_events:,} of {total_events:,} disagreement events** "
+                f"({concentration:.2f}%). The dashed line shows what the cumulative "
+                "share would look like if events were distributed equally across "
+                "images; it is **not** a statistical null distribution."
+            )
         st.caption(
-            "Images are ranked by their number of disagreement events "
-            "under the currently selected filters and thresholds. "
-            "This is an exploratory descriptive comparison."
+            "Images are ranked by disagreement count under the current filters "
+            "and thresholds. Move the slider to highlight a different top-N point. "
+            "This curve is descriptive; the fixed top-20 permutation test below "
+            "applies only to the original full-sample settings."
         )
 
 
