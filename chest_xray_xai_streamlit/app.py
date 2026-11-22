@@ -17,9 +17,11 @@ with st.sidebar:
 
     st.markdown("### Navigation")
 
+    
     st.markdown("""
     - [Experimental Results](#experimental-results)
     - [Stability–Localization Explorer](#stability-localization-explorer)
+    - [Continuous Analysis](#continuous-stability-localization-analysis)
     - [XAI Method Comparison](#xai-method-comparison)
     - [Screening Performance](#screening-performance-explorer)
     - [Image-Level Analysis](#image-level-disagreement-analysis)
@@ -28,6 +30,7 @@ with st.sidebar:
     - [Research Findings](#research-findings-and-limitations)
     - [Illustrative Case Study](#illustrative-case-study)
     """)
+
 
     st.divider()
 
