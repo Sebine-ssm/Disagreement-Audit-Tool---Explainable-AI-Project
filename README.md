@@ -1,4 +1,3 @@
-
 # When Stable Explanations Disagree: A Stability–Localization Disagreement Audit for Chest X-ray Classification
 
 ## Project Overview
@@ -15,13 +14,16 @@ Rather than treating explanation stability as sufficient evidence of reliability
 
 ## Research Objectives
 
-1. Generate explanations using three different XAI methods for chest X-ray classification.
+1. Generate explanations using three XAI methods for chest X-ray classification.
 2. Evaluate how explanation maps change under Gaussian blur and Gaussian noise.
 3. Quantify explanation stability using Spearman rank correlation.
 4. Measure localization alignment using radiologist-provided bounding boxes.
-5. Identify and analyze cases where explanation stability remains high despite a meaningful reduction in localization alignment.
-6. Examine whether the classifier's predicted label changes in these disagreement cases.
-7. Compare explanation stability across XAI methods using paired bootstrap confidence intervals.
+5. Identify cases where explanation stability remains high despite a meaningful reduction in localization alignment.
+6. Examine prediction consistency and classification correctness in disagreement cases.
+7. Investigate the relationship between continuous explanation stability and localization change, including method-specific and condition-specific patterns.
+8. Evaluate whether explanation similarity can reliably screen for substantial localization loss.
+9. Examine whether disagreement events are concentrated among particular images beyond what would be expected under a condition-stratified permutation benchmark.
+10. Develop an interactive dashboard to communicate and explore the audit's findings.
 
 ## Dataset
 
@@ -220,6 +222,42 @@ This analysis demonstrated that the percentage of flagged evaluations depends on
 
 The threshold-sensitivity results help characterize the robustness of the audit's findings but do not establish clinically validated cutoff values.
 
+### 6. Continuous Stability–Localization Relationships
+
+Across the 2,700 positive-case evaluations, explanation similarity and localization-alignment change had a pooled Spearman correlation of approximately **0.508**, with an image-cluster bootstrap 95% confidence interval of **[0.453, 0.559]**.
+
+The relationship differed across explanation methods:
+
+- Integrated Gradients: ρ ≈ 0.504
+- Occlusion Sensitivity: ρ ≈ 0.336
+- Score-CAM: ρ ≈ 0.621
+
+Importantly, the pooled positive association did not consistently describe every corruption condition. For Occlusion Sensitivity, all six condition-specific correlations were negative despite the positive pooled correlation, illustrating the importance of stratified interpretation.
+
+### 7. Explanation Similarity Is an Imperfect Screening Signal
+
+The analysis evaluated whether explanation similarity could identify substantial localization loss, defined as an alignment decrease of at least 0.05.
+
+The overall screening AUROC was approximately **0.7911**, with method-specific performance varying across Integrated Gradients, Occlusion Sensitivity, and Score-CAM.
+
+Of 1,145 substantial localization-loss evaluations, 171 retained explanation similarity of at least 0.80 and therefore would not be flagged by a screening rule that treats lower similarity as the warning signal.
+
+Even among 536 evaluations with similarity of at least 0.90, 39 (7.28%) exhibited substantial localization loss.
+
+These results suggest that explanation similarity contains useful information but should not be treated as sufficient evidence of preserved localization alignment.
+
+### 8. Disagreement Events Are Concentrated Among Particular Images
+
+Of the 150 annotated positive images, **70 experienced at least one disagreement event** across the evaluated methods and corruption conditions.
+
+The 20 images with the most disagreement events accounted for **50.88%** of all 171 events.
+
+A condition-stratified permutation analysis, using 2,000 permutations, produced a mean top-20 concentration of approximately **32.84%**, with a 95% permutation interval of **[29.24%, 36.84%]**.
+
+The observed concentration exceeded this benchmark, suggesting that disagreement events were more concentrated among particular images than expected under the specified permutation procedure.
+
+This exploratory result does not establish why particular images experienced more disagreements, and the permutation benchmark does not preserve every form of within-image dependence.
+
 ## Main Contribution
 
 The project's primary contribution is an **empirical stability–localization disagreement audit** that jointly evaluates explanation stability and bounding-box localization alignment under controlled image corruptions.
@@ -231,25 +269,37 @@ The study combines quantitative attribution comparisons, localization measuremen
 The work is an exploratory empirical audit, not a new attribution algorithm or a clinically validated explanation-reliability metric.
 
 ## Repository Structure
-
-```text
-.
-├── notebooks/
-│   ├── 01_Data_Preprocessing.ipynb
-│   ├── 02_Model_Training.ipynb
-│   ├── 03_ScoreCAM.ipynb
+```
+├── Python_Notebooks/
+│   ├── 01_RSNA_Data_Preparation.ipynb
+│   ├── 02_ResNet50_Training.ipynb
+│   ├── 03_Score-CAM.ipynb
 │   ├── 04_Integrated_Gradients.ipynb
 │   ├── 05_Occlusion_Sensitivity.ipynb
-│   └── 06_XAI_Comparison.ipynb
-├── src/
-│   └── xai_utils.py
-├── results/
-│   ├── figures/
-│   └── summaries/
+│   ├── 06_XAI_Comparison.ipynb
+│   ├── 07_Disagreement_Validation_Notebook.ipynb
+│   ├── 08_Localization_Analysis_and_Attribution_Visualization.ipynb
+│   ├── 09_Continuous_Stability_Localization_Analysis.ipynb
+│   ├── 10_Stability_Screening_and_Localization_Sensitivity.ipynb
+│   └── 11_Image_Level_Failure_Concentration_and_Reaesrch_Synthesis.ipynb
+│
+├── Results/
+│   └── ... Research outputs and saved analysis results
+│
+├── chest_xray_xai_streamlit/
+│   ├── data/
+│   ├── images/
+│   ├── app.py
+│   ├── continuous_analysis.py
+│   └── requirements.txt
+│
 ├── poster/
-├── requirements.txt
+│   └── XAI_Expo1_Poster.pdf
+│
+├── src/
 ├── .gitignore
-└── README.md
+├── README.md
+└── requirements.txt
 ```
 
 *The structure above is the intended repository layout. Filenames and paths should be updated to match the files actually uploaded.*
@@ -322,7 +372,7 @@ This study has several important limitations:
 - **Single dataset:** The results may not generalize to other imaging datasets or clinical settings.
 - **Limited evaluation sample:** The expanded explainability evaluation includes 300 held-out images.
 - **Bounding-box annotations:** Radiologist boxes approximate annotated lung-opacity regions and do not establish complete ground-truth explanations.
-- **Classification correctness and explanation targets:** The primary audit includes ground-truth positive images regardless of whether the classifier predicts them correctly. For false-negative cases, the explanation targets the predicted negative class, making localization alignment with positive-opacity annotations harder to interpret. The current analysis does not separately report disagreement rates for true positives and false negatives.
+- **Classification correctness and explanation targets:** The primary audit includes ground-truth positive images regardless of whether the classifier predicts them correctly. The 150-image sample contains 128 true positives and 22 false negatives. Classification-stratified analyses provide additional context, but the small false-negative subgroup limits the strength of comparisons. In false-negative cases, explanations target the predicted negative class, so alignment with positive-opacity annotations requires particular caution.
 - **Artificial corruptions:** Gaussian blur and noise may not fully represent real-world acquisition artifacts or distribution shifts.
 - **Exploratory thresholds:** The disagreement thresholds were selected for analysis and are not clinically validated.
 - **Repeated measurements:** Method–image–corruption evaluations are not independent patient-level observations.
@@ -333,17 +383,16 @@ The findings should therefore be interpreted as evidence of a measurable disagre
 
 ## Future Work
 
-This project will be extended in **Project Expo 2**, with a focus on strengthening the interpretation and evaluation of stability–localization disagreement.
+Several extensions could strengthen the generalizability and interpretation of this exploratory audit:
 
-Planned extensions include:
+- **External validation:** Evaluate stability–localization disagreement on additional chest X-ray datasets and model architectures.
+- **Clinical interpretation:** Investigate whether images with repeated disagreement events share identifiable imaging characteristics or annotation-related challenges.
+- **Alternative explanation evaluation:** Incorporate complementary localization, perturbation-faithfulness, and explanation-reliability measures.
+- **More realistic distribution shifts:** Examine acquisition-related artifacts and other clinically relevant perturbations beyond synthetic Gaussian blur and noise.
+- **Larger subgroup evaluations:** Expand the false-negative sample to better characterize differences associated with classification correctness.
+- **Threshold validation:** Investigate how operational thresholds might be selected and validated for specific evaluation objectives.
 
-- **Classification-stratified analysis:** Compare disagreement patterns between correctly classified positive images (true positives) and incorrectly classified positive images (false negatives).
-- **Explanation target interpretation:** Investigate how the relationship between predicted classes and ground-truth labels affects the interpretation of localization alignment.
-- **Alternative evaluation metrics:** Explore additional localization and explanation-faithfulness measures to complement bounding-box attribution overlap.
-- **Corruption robustness:** Investigate more clinically realistic image corruptions and distribution shifts.
-- **Threshold sensitivity:** Further examine how disagreement rates change under alternative stability and localization-loss thresholds.
-
-These extensions aim to better characterize when stability–localization disagreement occurs and how classification correctness influences its interpretation.
+Future work should assess whether these patterns generalize beyond the present dataset, model, and experimental conditions. The current audit is not intended for clinical decision-making.
 
 ## References
 
@@ -361,4 +410,4 @@ These extensions aim to better characterize when stability–localization disagr
 
 **Institution:** Duke University
 
-**Status:** Course research project — October 2026
+**Status:** Final research project — November 2026
