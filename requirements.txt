@@ -7,3 +7,5 @@ pydicom
 captum
 scikit-learn
 torchvision
+streamlit
+plotly
