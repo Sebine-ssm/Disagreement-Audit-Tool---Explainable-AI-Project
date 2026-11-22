@@ -688,58 +688,81 @@ with tab_statistics:
         "a condition-stratified permutation null model."
     )
 
-    research_results = pd.DataFrame(
-        {
-            "Measure": [
-                "Observed Top-20 Concentration",
-                "Permutation Null Mean",
-            ],
-            "Concentration (%)": [
-                50.88,
-                32.84,
-            ],
-        }
-    )
+    # Fixed, full-sample results from the original notebook. These values are
+    # not recalculated from dashboard filters or the exploratory top-N slider.
+    observed_top20 = 50.88
+    null_mean = 32.84
+    null_lower = 29.24
+    null_upper = 36.84
 
-    fig_permutation = px.bar(
-        research_results,
-        x="Measure",
-        y="Concentration (%)",
-        color="Measure",
-        text="Concentration (%)",
-        title="Observed Concentration vs. Permutation Null Mean",
+    fig_permutation = go.Figure()
+    # The horizontal band is the central 95% range of the permutation null,
+    # not a confidence interval for the observed statistic.
+    fig_permutation.add_shape(
+        type="rect",
+        x0=null_lower, x1=null_upper,
+        y0=-0.34, y1=0.34,
+        fillcolor="rgba(23,105,194,0.18)",
+        line=dict(color="rgba(23,105,194,0.55)", width=1),
+        layer="below",
     )
-
-    fig_permutation.update_traces(
-        texttemplate="%{text:.2f}%",
-        textposition="outside",
+    fig_permutation.add_trace(
+        go.Scatter(
+            x=[null_mean], y=[0], mode="markers",
+            name="Permutation null mean",
+            marker=dict(color="#1769C2", size=14, symbol="diamond"),
+            hovertemplate="Null mean: %{x:.2f}%<extra></extra>",
+        )
     )
-
+    fig_permutation.add_trace(
+        go.Scatter(
+            x=[observed_top20], y=[0], mode="markers",
+            name="Observed top-20 concentration",
+            marker=dict(color="#D24A43", size=17, symbol="circle"),
+            hovertemplate="Observed: %{x:.2f}%<extra></extra>",
+        )
+    )
+    fig_permutation.add_annotation(
+        x=null_mean, y=0.48, text=f"Null mean: {null_mean:.2f}%",
+        showarrow=False, font=dict(color="#1769C2", size=12),
+    )
+    fig_permutation.add_annotation(
+        x=observed_top20, y=0.48, text=f"Observed: {observed_top20:.2f}%",
+        showarrow=False, font=dict(color="#D24A43", size=12),
+    )
     fig_permutation.update_layout(
-        height=420,
-        showlegend=False,
-        yaxis_range=[0, 60],
+        title="Observed top-20 concentration versus permutation null range",
+        xaxis=dict(title="Share of disagreement events in top 20 images (%)", range=[20, 60], ticksuffix="%"),
+        yaxis=dict(visible=False, range=[-0.7, 0.85]),
+        height=330,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+        margin=dict(t=95, b=60),
     )
-
     st.plotly_chart(
         fig_permutation,
         use_container_width=True,
         key="original_permutation_comparison",
     )
-
-    st.markdown(
-        "The observed top-20 concentration (50.88%) exceeded "
-        "the permutation null 95% interval (29.24%–36.84%). "
-        "This provides evidence that disagreement events were "
-        "more concentrated among images than expected under "
-        "the specified condition-stratified null model."
-    )
-
     st.caption(
-        "These values come from the original research analysis "
-        "using explanation similarity ≥ 0.80 and localization "
-        "loss ≥ 0.05, with all methods and corruption conditions. "
-        "They do not update when dashboard filters change."
+        f"Shaded band: permutation null central 95% interval "
+        f"({null_lower:.2f}%–{null_upper:.2f}%). "
+        "Blue diamond: null mean. Red circle: observed top-20 concentration."
+    )
+    st.markdown(
+        "**Interpretation:** The observed top-20 concentration was "
+        "**50.88%**, above the permutation null 95% interval "
+        "(**29.24%–36.84%**). Under the specified condition-stratified "
+        "permutation model, disagreement events were more concentrated "
+        "among images than expected. The shaded interval describes the "
+        "**null distribution**, not uncertainty around the observed estimate."
+    )
+    st.info(
+        "**Fixed original analysis:** This test uses all methods and corruption "
+        "conditions at explanation similarity ≥ 0.80 and localization loss "
+        "≥ 0.05. Its values do not change when you adjust dashboard filters "
+        "or the exploratory top-N slider above. The test concerns the top "
+        "20 images only; it does not provide an inferential interval for "
+        "other top-N selections."
     )
 
 
