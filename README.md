@@ -308,6 +308,13 @@ The intended audience includes XAI researchers, model evaluators, and medical-im
 
 The audit may help identify cases requiring closer investigation, but its results should not be interpreted as evidence of clinical correctness, explanation faithfulness, or suitability for deployment. Additional validation, including evaluation across datasets, models, and clinically relevant conditions, would be necessary before considering operational use.
 
+### Connection to Prior Research
+
+Ghassemi et al. (2021) caution against treating post-hoc explanations as sufficient evidence of reliable clinical decision-making. Their work emphasizes the limitations of explanation methods for individual patient-level predictions and advocates rigorous model validation.
+
+Our findings complement this perspective by demonstrating that attribution maps can remain highly similar under controlled image corruptions even when their alignment with radiologist-annotated opacity regions deteriorates. This highlights the importance of evaluating multiple dimensions of explanation behavior rather than relying on attribution stability alone.
+
+Importantly, localization alignment is only a proxy for explanation quality and does not establish clinical correctness or causal faithfulness.
 
 ## Repository Structure
 ```
@@ -489,7 +496,9 @@ Future work should assess whether these patterns generalize beyond the present d
 
 3. Wang, H., et al. (2020). *Score-CAM: Score-weighted visual explanations for convolutional neural networks*. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops.
 
-4. RSNA. (2018). *RSNA Pneumonia Detection Challenge*. https://www.kaggle.com/competitions/rsna-pneumonia-detection-challenge
+4. Ghassemi, M., Oakden-Rayner, L., & Beam, A. L. (2021). The false hope of current approaches to explainable artificial intelligence in health care. *The Lancet Digital Health, 3*(11), e745–e750. https://doi.org/10.1016/S2589-7500(21)00208-9
+
+5. RSNA. (2018). *RSNA Pneumonia Detection Challenge*. https://www.kaggle.com/competitions/rsna-pneumonia-detection-challenge
 
 ---
 
