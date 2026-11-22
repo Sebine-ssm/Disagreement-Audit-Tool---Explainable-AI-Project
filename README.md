@@ -12,7 +12,15 @@ Using a ResNet-50 chest X-ray classifier initialized with pretrained weights and
 
 Rather than treating explanation stability as sufficient evidence of reliability, the project introduces a **stability–localization disagreement audit** to identify cases in which an explanation remains quantitatively stable but its alignment with annotated lung-opacity regions deteriorates.
 
-This project extends an initial stability–localization disagreement audit by investigating continuous relationships between explanation stability and localization change, evaluating similarity-based screening for localization deterioration, and examining the concentration of disagreement events across images.
+This research extends the initial stability–localization disagreement audit through additional analyses of classification correctness, bounding-box-area-adjusted localization, continuous stability–localization relationships, retrospective screening performance, and image-level disagreement concentration. Together, these analyses investigate not only whether disagreement occurs, but also how it varies across evaluation settings and what limitations arise when explanation stability is used as an indicator of localization preservation.
+
+### Explore the Project
+
+**Interactive Dashboard:** [Stability–Localization Disagreement Audit](https://disagreement-audit-tool---explainable-ai-project-eqrkskucbczxc.streamlit.app/)
+
+The dashboard provides an interactive interface for exploring explanation stability, localization alignment, and supporting audit results.
+
+**Research Notebooks:** See the `Python_Notebooks/` directory for the experimental pipeline, statistical analyses, and supporting visualizations.
 
 ## Research Objectives
 
@@ -282,13 +290,24 @@ This exploratory result does not establish why particular images experienced mor
 
 ## Main Contribution
 
-The project's primary contribution is an **empirical stability–localization disagreement audit** that jointly evaluates explanation stability and bounding-box localization alignment under controlled image corruptions.
+This project's primary contribution is an empirical stability–localization disagreement audit for chest X-ray classification. The audit jointly evaluates explanation stability and localization alignment under controlled image corruptions, identifying cases where explanations remain highly similar despite losing alignment with radiologist-annotated lung-opacity regions.
 
-Instead of asking only whether an explanation changes after image corruption, the audit asks whether an explanation can remain stable while losing alignment with annotated regions.
+The research extends this audit through additional evaluations of classification correctness, bounding-box-area-adjusted localization, continuous stability–localization relationships, similarity-based screening performance, and image-level disagreement concentration.
 
-The study combines quantitative attribution comparisons, localization measurements, corruption experiments, and disagreement analysis to characterize a specific limitation of evaluating explanations through stability alone.
+Together, these analyses provide a reproducible framework for investigating the limitations of explanation stability as a standalone evaluation criterion.
 
-The work is an exploratory empirical audit, not a new attribution algorithm or a clinically validated explanation-reliability metric.
+The work is intended for XAI researchers, medical-imaging AI developers, and practitioners evaluating model explanations. It is an exploratory research audit, not a new attribution algorithm, a clinically validated reliability measure, or a diagnostic system.
+
+## Responsible AI Implications
+
+Explanation methods are often used to make complex machine learning predictions more understandable, particularly in high-stakes applications such as medical imaging. However, a stable explanation does not necessarily indicate that the explanation remains concentrated on annotated abnormalities.
+
+This project demonstrates why explanation stability and localization alignment should be evaluated as complementary properties rather than interchangeable measures of explanation reliability.
+
+The intended audience includes XAI researchers, model evaluators, and medical-imaging AI developers who want to investigate explanation behavior under controlled perturbations.
+
+The audit may help identify cases requiring closer investigation, but its results should not be interpreted as evidence of clinical correctness, explanation faithfulness, or suitability for deployment. Additional validation, including evaluation across datasets, models, and clinically relevant conditions, would be necessary before considering operational use.
+
 
 ## Repository Structure
 ```
@@ -325,6 +344,14 @@ The work is an exploratory empirical audit, not a new attribution algorithm or a
 ```
 
 ## Reproducibility and Setup
+
+| Required Resource | Purpose |
+|---|---|
+| RSNA DICOM images and annotations | Data preparation and localization evaluation |
+| Trained ResNet-50 checkpoint | Generate model predictions and attribution maps |
+| Saved XAI evaluation results | Inputs for subsequent statistical analyses |
+| Python dependencies | Execute research notebooks |
+| Streamlit data and dependencies | Run the interactive dashboard |
 
 The experiments were developed in **Google Colab** using Python.
 
@@ -376,8 +403,8 @@ The research workflow consists of 11 notebooks organized into data preparation, 
 4. `04_Integrated_Gradients.ipynb` — Integrated Gradients pilot analysis.
 5. `05_Occlusion_Sensitivity.ipynb` — Occlusion Sensitivity pilot analysis.
 6. `06_XAI_Comparison.ipynb` — Expanded XAI evaluation, paired comparisons, and primary disagreement audit.
-7. `07_Disagreement_Validation_Notebook.ipynb` — Validation of disagreement flags and supporting calculations.
-8. `08_Localization_Analysis_and_Attribution_Visualization.ipynb` — Localization analysis, attribution visualization, and qualitative examples.
+7. `07_Disagreement_Validation_Notebook.ipynb` — Validates disagreement calculations, compares true-positive and false-negative cases, examines prediction changes under corruption, and evaluates uncertainty using image-level bootstrap analysis.
+8. `08_Localization_Analysis_and_Attribution_Visualization.ipynb` — Investigates localization behavior using bounding-box-area-adjusted attribution enrichment, compares explanation methods, and examines representative attribution visualizations.
 9. `09_Continuous_Stability_Localization_Analysis.ipynb` — Continuous stability–localization relationships and stratified analysis.
 10. `10_Stability_Screening_and_Localization_Sensitivity.ipynb` — Screening reliability and localization-loss sensitivity.
 11. `11_Image_Level_Failure_Concentration_and_Reaesrch_Synthesis.ipynb` — Image-level disagreement concentration, permutation analysis, and research synthesis.
