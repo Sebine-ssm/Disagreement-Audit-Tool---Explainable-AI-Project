@@ -2,6 +2,7 @@ import streamlit as st
 from pathlib import Path
 import pandas as pd
 import plotly.express as px
+from continuous_analysis import render_continuous_analysis
 
 st.set_page_config(
     page_title="Chest X-ray XAI Disagreement Audit", page_icon="🩻", layout="wide"
