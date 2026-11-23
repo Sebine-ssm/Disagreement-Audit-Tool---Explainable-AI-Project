@@ -343,6 +343,7 @@ Importantly, localization alignment is only a proxy for explanation quality and 
 │
 ├── poster/
 │   └── XAI_Expo1_Poster.pdf
+|   └── XAI_Expo2_poster.pdf
 │
 ├── src/
 ├── .gitignore
